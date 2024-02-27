@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /afm/
+Disallow: /ofertare/
+Disallow: /*.txt$
+Disallow: /*.png.txt$

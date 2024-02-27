@@ -1,0 +1,6 @@
+@props([
+    'item',
+    'column'
+])
+
+Deschide

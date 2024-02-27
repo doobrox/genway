@@ -1,0 +1,120 @@
+
+
+.pam-header, #pam-header-bg, .pam-layout-cell, .pam-layout-wrapper, .pam-footer, .pam-nav, #pam-hmenu-bg, .pam-sheet,
+.clearfix {
+   zoom: expression(this.runtimeStyle.zoom="1", this.appendChild(document.createElement("br")).className="cleared");
+}
+
+.pam-textblock > div {
+   display: block;
+   line-height: normal;
+   zoom: 1;
+}
+
+.pam-header
+{
+   z-index: 1;
+   background-image: [headerimage];
+   background-position: [headerposition];
+}
+
+#pam-header-bg 
+{
+   display: none;
+}
+
+.pam-hmenu>li, .pam-hmenu>li>a
+{
+   display: inline !important;
+   zoom: 1;
+   float: none !important;
+   vertical-align: top;
+}
+ul.pam-hmenu, ul.pam-hmenu ul {
+   zoom: expression(this.runtimeStyle.zoom="1", this.appendChild(document.createElement("br")).className="cleared");
+}
+#pam-hmenu-bg 
+{
+   display: none;
+}
+
+ul.pam-hmenu>li:first-child {
+   padding-right:0;
+}
+
+ul.pam-hmenu ul, .desktop-nav ul.pam-hmenu>li.ext:hover>a{
+   background-color: #323A45 !important;
+}
+
+.pam-content-layout, .pam-content-layout-row, .pam-layout-cell 
+{
+   display: block;
+   zoom: 1;
+}
+.pam-layout-cell
+{
+   position:relative;
+   float: left;
+   clear: right;
+}
+
+ul.pam-vmenu, ul.pam-vmenu ul, ul.pam-vmenu li{
+   zoom: 1;
+}
+
+ul.pam-vmenu ul 
+{
+   background-color: #FFFFFF;
+}
+
+input[type="text"]
+{
+   margin:0 0 0 -3px;
+   zoom:expression(runtimeStyle.zoom = 1, parentNode.insertBefore(document.createElement('div'), this).appendChild(this));
+}
+
+* html input[type="text"]
+{
+   margin :0;
+}
+
+form.pam-search>input[type="text"]
+{
+   margin:0 0 0 -3px;
+   zoom:expression(runtimeStyle.zoom = 1, parentNode.insertBefore(document.createElement('div'), this).appendChild(this));
+}
+
+form.pam-search div>input[type="text"]
+{
+   width: 100%;
+}
+
+* html form.pam-search>input[type="text"] 
+{
+   margin :0;
+}
+
+form.pam-search
+{
+   zoom: 1;
+}
+.pam-postheadericons span{
+   zoom: 1;
+}
+.pam-postcontent {
+   height: 1%;
+}
+
+.close-alt, .arrow-right-alt, .arrow-left-alt {
+   display: block !important;
+}
+.cw, .ccw {
+   display: none !important;
+}
+
+.pam-content 
+{
+   width: auto;
+   float:none;
+}
+
