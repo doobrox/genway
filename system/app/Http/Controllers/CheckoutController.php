@@ -31,7 +31,7 @@ class CheckoutController extends Controller
     public function __construct() 
     {
         $this->generalErrorMsg = __('Eroare la calcularea sumei, va rog incercati mai tarziu.');
-    }
+    } 
 
     public function index(Request $request)
     {
