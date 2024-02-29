@@ -28,6 +28,14 @@ use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 
+
+
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+
+
 class AfmController extends Controller
 {
     use FileAccessTrait;
@@ -49,7 +57,7 @@ class AfmController extends Controller
         //     // dd(AfmForm::setSection(2023)->withInfo()->whereIn('numar_dosar_afm', $item->toArray())->pluck('numar_dosar_afm')->toArray());
 
         //     // $data = array_merge($data, AfmForm::setSection(2023)->withInfo()->whereIn('numar_dosar_afm', $item->toArray())->pluck('numar_dosar_afm')->toArray());
-            
+
         // }
         // $afm = AfmForm::setSection(2023)->withInfo()->whereNull('stare_montaj')->whereNotNull('data_aprobare_afm')->update([
         //     'stare_montaj' => 'sistem nemontat'
@@ -292,7 +300,7 @@ class AfmController extends Controller
         $reload = false;
         $columns_edited = array_merge([$column->nume], ($column->rules['edit_with'] ?? []));
         $validator = Validator::make(
-            $request->all(), 
+            $request->all(),
             ColoanaTabelAFM::getColumnsRules($columns_edited) + (
                 !empty($column->rules['additional_validation']) ? $column->rules['additional_validation'] : []
             )
@@ -303,12 +311,12 @@ class AfmController extends Controller
         // && can be modified only once and doesn't have a value
         if(
             $column->editare && AfmForm::setSection($section)->where('id', $formular)->exists() && (
-                !isset($column->rules['edit_once']) 
+                !isset($column->rules['edit_once'])
                 || AfmForm::table($column->getColumnTable($section), $column->getColumnTableKey($section), $section)
                     ->where($column->getColumnTableForeignKey($section), $formular)
                     ->whereNull($column->nume)->exists()
             ) && (
-                !isset($column->rules['edit_without']) 
+                !isset($column->rules['edit_without'])
                 || AfmForm::setSection($section)->withInfo()->where('id', $formular)->whereNull($column->rules['edit_without'])->exists()
             ) && $validator->passes()
         ) {
@@ -316,7 +324,7 @@ class AfmController extends Controller
                 // if column is a file
                 if($column->isTypeFile() && $request->hasFile($column->nume)) {
                     $file = Fisier::store(
-                        $request->file($column->nume), 'fisiere_afm/'.$section.'/'.$formular.'/', 
+                        $request->file($column->nume), 'fisiere_afm/'.$section.'/'.$formular.'/',
                         AfmForm::class, $formular, null, null, true
                     );
                     if(isset($file['error'])) {
@@ -356,8 +364,8 @@ class AfmController extends Controller
                     if($column->afisare === null && isset($column->rules['db'])) {
                         $afm_new['nume_'.$column->nume] = $this->getColumnDbOptions($request, $column, $section, null, $afm_new[$column->nume]);
                     }
-                    $label = \Blade::render('<x-dynamic-component :component="\''.($column->afisare == 1 
-                        ? 'ofertare.columns.view.'.$column->nume 
+                    $label = \Blade::render('<x-dynamic-component :component="\''.($column->afisare == 1
+                        ? 'ofertare.columns.view.'.$column->nume
                         : 'ofertare.fields.view.'.$column->getType()
                     ).'\'"
                         :item="$item"
@@ -367,8 +375,8 @@ class AfmController extends Controller
                         'column' => $column
                     ]);
 
-                    $reload = isset($column->rules['edit_once']) 
-                        || isset($column->rules['edit_with']) 
+                    $reload = isset($column->rules['edit_once'])
+                        || isset($column->rules['edit_with'])
                         || isset($column->rules['edit_without']);
                 }
             }
@@ -420,7 +428,7 @@ class AfmController extends Controller
             // -1 when value is null and needs to return null instead of array
             if($value !== '-1') {
                 $item = $items->where('id', $value)->first();
-                return $item->text ?? null; 
+                return $item->text ?? null;
             }
 
             $items = $items->pluck('text','id')->toJson();
@@ -1062,7 +1070,7 @@ class AfmController extends Controller
             return $pdf->download($data['subiect'].'.pdf');
         }
     }
-    
+
     public function generateActAditionalContractInstalare($section = 2021, $afm, $download = false)
     {
         $afm = AfmForm::setSection($section)->where('id', $afm)->withInfo()->first();
@@ -1237,7 +1245,7 @@ class AfmController extends Controller
 				$panouri['cod'] = 'JA SOLAR JAM60S20-385/MR';
 				break;
 		}
-    
+
         $contor['cod'] = $invertor['contor'] ?? '';
 		$contor['serie'] = $afm['serie_contor'];
 		$contor['nr_buc'] = 1;
@@ -1254,9 +1262,9 @@ class AfmController extends Controller
 		// cabluri_accesorii
 		$cabluri_accesorii['nr_buc'] = 1;
 		$cabluri_accesorii['pret_unitar'] = round((
-			$invertor['val_total'] 
-			+ $panouri['val_total'] 
-			+ $contor['val_total'] 
+			$invertor['val_total']
+			+ $panouri['val_total']
+			+ $contor['val_total']
 			+ $tablou_electric['val_total']
 		) * 0.05, 2);
 		$cabluri_accesorii['val_total'] = $cabluri_accesorii['pret_unitar'] * $cabluri_accesorii['nr_buc'];
@@ -1264,26 +1272,26 @@ class AfmController extends Controller
 
 		$spp['nr_buc'] = 1;
 		// Formula de calcul: Valoare contract – (12% * Valoare contract) – Valoare totala invertor – Valoare totala panouri – Valoare totala Contor – Valoare totala tablou electric
-		$spp['pret_unitar'] = $afm['valoare_contract'] 
-			- ($afm['valoare_contract'] * 0.12) 
-			- $invertor['val_total'] 
-			- $panouri['val_total'] 
-			- $contor['val_total'] 
+		$spp['pret_unitar'] = $afm['valoare_contract']
+			- ($afm['valoare_contract'] * 0.12)
+			- $invertor['val_total']
+			- $panouri['val_total']
+			- $contor['val_total']
 			- $tablou_electric['val_total']
 			- $cabluri_accesorii['val_total'];
 		$spp['val_total'] = $spp['pret_unitar'] * $spp['nr_buc'];
 		$spp['val_tva'] = round($spp['val_total'] * 0.05, 2);
 
-		$afm['total_fara_tva'] = $invertor['val_total'] 
-			+ $panouri['val_total'] 
-			+ $contor['val_total'] 
+		$afm['total_fara_tva'] = $invertor['val_total']
+			+ $panouri['val_total']
+			+ $contor['val_total']
 			+ $tablou_electric['val_total']
 			+ $cabluri_accesorii['val_total']
 			+ $spp['val_total'];
 
-		$afm['total_tva'] = $invertor['val_tva'] 
-			+ $panouri['val_tva'] 
-			+ $contor['val_tva'] 
+		$afm['total_tva'] = $invertor['val_tva']
+			+ $panouri['val_tva']
+			+ $contor['val_tva']
 			+ $tablou_electric['val_tva']
 			+ $cabluri_accesorii['val_tva']
 			+ $spp['val_tva'];
@@ -1307,16 +1315,61 @@ class AfmController extends Controller
             'stampila_firma' => '<img class="stampila" src="data:image/png;base64,' . base64_encode($fi ? $fi->stampila : '').'" style="width:150px;height:auto;" />',
             // 'cod_panouri' => $afm->putere_panouri == 430 ? 'TRINA' : 'JA SOLAR',
             'nr_buc_panouri'=> $afm->numar_panouri ?? '..................',
-            
-            
-        ] + $afm->toArray() + affix_array_keys($invertor ? $invertor : [], '_invertor') 
-        + affix_array_keys($panouri ? $panouri : [], '_panouri') 
+
+
+        ] + $afm->toArray() + affix_array_keys($invertor ? $invertor : [], '_invertor')
+        + affix_array_keys($panouri ? $panouri : [], '_panouri')
         + affix_array_keys($spp ? $spp : [], '_spp')
         + affix_array_keys($contor ? $contor : [], '_contor')
         + affix_array_keys($cabluri_accesorii ? $cabluri_accesorii : [], '_cabluri_accesorii')
         + affix_array_keys($tablou_electric ? $tablou_electric : [], '_tablou_electric'));
 
             // dd($afm);
+
+        $pdf = \PDF::loadView('sablon-pdf', $data);
+        // return view('ofertare.afm.sabloane-pdf.fisa-vizita', $data);
+        if (!$download) {
+            return $pdf->stream($data['subiect'].'.pdf')->header('Content-Type','application/pdf');
+        } else {
+            return $pdf->download($data['subiect'].'.pdf');
+        }
+    }
+
+    public function generateQrCode($section = 2021, $afm, $download = false)
+    {
+        $afm = AfmForm::setSection($section)->where('id', $afm)->withInfo()->first();
+        $fi = $afm->firma;
+        $fi = $fi ? $fi->updateDetailsForSection($afm->getModelSection()) : $fi;
+        $base64_stamp_img = 'data:image/png;base64,' . base64_encode($fi ? $fi->stampila : '');
+        $base64_logo_img = base64_encode($this->file_assets('assets/ofertare/genway_logo_small.png', 2));
+
+        $dataqr = '1|FACTURA12|20/09/2023|Alba|Albac|Albac|-|45|Nume-
+Beneficiar|1123456789101|5,92|HAS873H22393142|START_PANOU|Ac9E8211231141241
+210|Ac9E8211231141241211|Ac9E8211231141241212|Ac9E8211231141241213|
+Ac9E8211231141241214|Ac9E8211231141241215|Ac9E8211231141241216|
+Ac9E8211231141423642|Ac9E8211231141423643|cAB9E8211231141423645|
+Ac9E8211231141423646|Ac9E8211231141423647|Ac9E8211231141423648|
+Ac9E8211231141423649|AB9E8211231141423650|AB9E8211231141423651|
+AB9E8211231141423652|AB9E8211231141423653|AB9E8211231141423654|
+AB9E8211231141423655|AB9E8211231141423656';
+
+        $data = array(
+            'subiect' => 'QR Cod Factura',
+            'continut' => 'asd',
+            'styles' => null,
+            'scripts' => null,
+        );
+
+
+
+        $renderer = new ImageRenderer(
+            new RendererStyle(400),
+            new SvgImageBackEnd()
+        );
+        $writer = new Writer($renderer);
+        $qrCodeImage = $writer->writeString($dataqr);
+
+        $data['continut'] = '<img src="data:image/svg+xml;base64,' . base64_encode($qrCodeImage) . '"  alt="Embedded SVG Image" width="400" style="margin-top:300px; margin-left:150px">';
 
         $pdf = \PDF::loadView('sablon-pdf', $data);
         // return view('ofertare.afm.sabloane-pdf.fisa-vizita', $data);
@@ -1340,7 +1393,7 @@ class AfmController extends Controller
 
         $base64_stamp_img = 'data:image/png;base64,' . base64_encode($fi ? $fi->stampila : '');
         $base64_logo_img = 'data:image/png;base64,' . base64_encode($this->file_assets('assets/ofertare/genway_logo_small.png', 2));
-        
+
         $panouri = $afm->panou;
         $panouri['noct_grade'] = '45';
 		switch ($afm['putere_panouri']) {
@@ -1381,7 +1434,7 @@ class AfmController extends Controller
 				$panouri['tensiune'] = '41,78';
 				break;
 		}
-        
+
 		$afm['panouri'] = $panouri;
 
         $data = SablonDocument::getFormatedData(9, [
@@ -1532,9 +1585,9 @@ class AfmController extends Controller
 
             try {
                 SendMails::dispatch([
-                    'nume' => $afm->nume, 
-                    'prenume' => $afm->prenume, 
-                    'email' => $afm->email, 
+                    'nume' => $afm->nume,
+                    'prenume' => $afm->prenume,
+                    'email' => $afm->email,
                 ], [
                     'template' => 24,
                     'cc' => $responsabil->user_email ?? auth()->user()->user_email,
@@ -1551,8 +1604,8 @@ class AfmController extends Controller
 
                 return back()->with(['status' => __('Emailul a fost trimis.')]);
 
-            } catch(\Exception $e) { 
-                \Log::info($e); 
+            } catch(\Exception $e) {
+                \Log::info($e);
                 return back()->withErrors(['error' => __('Emailul nu a putut fi trimis, va rugam sa contactati un developer.')]);
             }
         }
@@ -1568,18 +1621,18 @@ class AfmController extends Controller
 
             try {
                 SendMails::dispatch([
-                    'nume' => $afm->nume, 
-                    'prenume' => $afm->prenume, 
-                    'email' => $afm->email, 
+                    'nume' => $afm->nume,
+                    'prenume' => $afm->prenume,
+                    'email' => $afm->email,
                 ], [
                     'template' => auth()->id() == 413 ? 33 : 32,
                     'cc' => auth()->user()->user_email,
                     'nume_utilizator' => auth()->user()->nume_complet,
                     'telefon_utilizator' => auth()->user()->telefon,
                     'email_utilizator' => auth()->user()->user_email,
-                    'data_inceput_estimare_montaj' => $afm->data_inceput_estimare_montaj 
+                    'data_inceput_estimare_montaj' => $afm->data_inceput_estimare_montaj
                         ? date('d.m.Y', strtotime($afm->data_inceput_estimare_montaj)) : '',
-                    'data_sfarsit_estimare_montaj' => $afm->data_sfarsit_estimare_montaj 
+                    'data_sfarsit_estimare_montaj' => $afm->data_sfarsit_estimare_montaj
                         ? date('d.m.Y', strtotime($afm->data_sfarsit_estimare_montaj)) : '',
                 ]/* + ($fisier ? [
                     'attachments' => [$fisier->attachment()]
@@ -1592,8 +1645,8 @@ class AfmController extends Controller
 
                 return back()->with(['status' => __('Emailul a fost trimis.')]);
 
-            } catch(\Exception $e) { 
-                \Log::info($e); 
+            } catch(\Exception $e) {
+                \Log::info($e);
                 return back()->withErrors(['error' => __('Emailul nu a putut fi trimis, va rugam sa contactati un developer.')]);
             }
         }
@@ -1674,7 +1727,7 @@ class AfmController extends Controller
             'numar_act_aditional_cupon' => $this->getNumarActAditional($item, 'act_aditional_cupon'),
             'siruri_panouri' => is_array($sir) ? implode(' x ', $sir) : $sir,
 
-            
+
             'nume_judet_domiciliu' => $judetD ? $judetD->nume : '',
             'nume_localitate_domiciliu' => $localitateD ? $localitateD->nume : '',
             'judet_domiciliu' => $judetD ? $judetD->nume : '',

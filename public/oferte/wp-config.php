@@ -20,10 +20,10 @@
 
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'rroi3063_genway_oferte' );
+define( 'DB_NAME', 'genway' );
 
 /** Database username */
-define( 'DB_USER', 'rroi3063_ofertare' );
+define( 'DB_USER', 'root' );
 
 /** Database password */
 define( 'DB_PASSWORD', 'EhKi_;GXTp8+' );

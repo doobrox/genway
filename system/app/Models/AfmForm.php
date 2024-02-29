@@ -215,7 +215,7 @@ class AfmForm extends Model
 
     public function getValidareContravaloareRateAttribute()
     {
-        return $this->attributes['validare_contravaloare_rate'] ?? ($this->suma_rate 
+        return $this->attributes['validare_contravaloare_rate'] ?? ($this->suma_rate
             ? ($this->valoare_contract - $this->suma_rate == 0 ? 1 : 0) : null
         );
     }
@@ -591,12 +591,12 @@ class AfmForm extends Model
     public function scopeWithZileNastere($query, $alias = 'zile_nastere')
     {
         $column = '`'.$this->getTable().'`.`data_nastere`';
-        $subquery = 'TIMESTAMPDIFF(DAY, CURRENT_TIMESTAMP, 
-            DATE_ADD('.$column.', 
+        $subquery = 'TIMESTAMPDIFF(DAY, CURRENT_TIMESTAMP,
+            DATE_ADD('.$column.',
                 INTERVAL
                 (
-                    TIMESTAMPDIFF(YEAR, '.$column.', CURRENT_TIMESTAMP) 
-                    + CASE WHEN DATE_ADD('.$column.', INTERVAL TIMESTAMPDIFF(YEAR, '.$column.', CURRENT_TIMESTAMP) YEAR) < CURRENT_TIMESTAMP 
+                    TIMESTAMPDIFF(YEAR, '.$column.', CURRENT_TIMESTAMP)
+                    + CASE WHEN DATE_ADD('.$column.', INTERVAL TIMESTAMPDIFF(YEAR, '.$column.', CURRENT_TIMESTAMP) YEAR) < CURRENT_TIMESTAMP
                     THEN 1 ELSE 0 END
                 ) YEAR
             )
@@ -632,6 +632,7 @@ class AfmForm extends Model
 
     public function scopeWithVerificareSiruri($query, $alias = 'verificare_siruri')
     {
+
         if (is_null($query->getQuery()->columns)) {
             $query->select('*', $this->getTable().'.id');
         }
@@ -945,7 +946,7 @@ class AfmForm extends Model
                         ->update(
                             collect($data)->only([
                                 'marca_invertor', 'putere_invertor',
-                                'marca_panouri', 'numar_panouri', 'putere_panouri', 
+                                'marca_panouri', 'numar_panouri', 'putere_panouri',
                                 'tip_acumulatori', 'capacitate_acumulatori',
                             ])->toArray()
                         );
@@ -1084,7 +1085,7 @@ class AfmForm extends Model
                 $coloane_necesare[$coloana['rules']['edit_without']] = 0;
             }
         }
-           
+
         // add conditions columns if they are not selected
         $coloane_necesare = is_array($coloane_necesare) && is_array($conditions)
             ? $coloane_necesare + $conditions + (isset($conditions['or']) && is_array($conditions['or']) ? $conditions['or'] : [])
@@ -1190,7 +1191,7 @@ class AfmForm extends Model
                 unset($conditions['formular']);
             }
             if(
-                isset($conditions['order_by']['column']) 
+                isset($conditions['order_by']['column'])
                 && $coloana_tabel = $coloane_necesare->where('nume', $conditions['order_by']['column'])->first()
             ) {
                 $coloana_cu_tabel = isset($coloana_tabel['rules']['scope'])
@@ -1309,14 +1310,14 @@ class AfmForm extends Model
 
                 if(isset($coloana_tabel->rules['relationship']['name']) && isset($coloana_tabel->rules['relationship']['table'])) {
                     $rel = $coloana_tabel->rules['relationship'];
-                    $main_func = $and || is_null($query->getQuery()->wheres) 
+                    $main_func = $and || is_null($query->getQuery()->wheres)
                         ? 'whereHas' : 'orWhereHas';
 
                     $query->{$main_func}($rel['name'], function ($query) use ($val, $rel) {
                         $query->whereIn($rel['table'].'.id', \Arr::wrap($val));
                     });
                 } elseif($coloana_tabel->tip == '7') { // file conditions
-                    $main_func = $and || is_null($query->getQuery()->wheres) 
+                    $main_func = $and || is_null($query->getQuery()->wheres)
                         ? 'where' : 'orWhere';
                     if(is_array($val)) {
                         $query->{$main_func}(function($subquery) use($coloana_cu_tabel, $val) {
@@ -1336,7 +1337,7 @@ class AfmForm extends Model
                         });
                     }
                 } elseif($coloana_tabel->tip == '3') { // date conditions
-                    $main_func = $and || is_null($query->getQuery()->wheres) 
+                    $main_func = $and || is_null($query->getQuery()->wheres)
                         ? 'where' : 'orWhere';
                     if(is_array($val)) {
                         $query->{$main_func}(function($subquery) use($coloana_cu_tabel, $val) {
@@ -1365,7 +1366,7 @@ class AfmForm extends Model
                 } else { // text, textarea, number, select conditions
                     if(is_array($val)) {
                         $flipped_val = array_flip($val);
-                        $main_func = $and || is_null($query->getQuery()->wheres) 
+                        $main_func = $and || is_null($query->getQuery()->wheres)
                             ? 'where' : 'orWhere';
                         $query->{$main_func}(function($subquery) use($coloana_cu_tabel, $val, $flipped_val) {
                             $func = 'whereIn';
@@ -1399,7 +1400,7 @@ class AfmForm extends Model
         }
 
         return $query;
-    } 
+    }
 
     public static function getQuery($coloane, $conditions = [], $section = null)
     {

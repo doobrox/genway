@@ -254,8 +254,8 @@ Route::middleware(['ci_auth'])->group(function() {
             // Route::get('formular/{section}/{formular}/generare-fisa-vizita', 'generateFisaVizita')->name('generate.fisa.vizita');
 
             // Route::get('formular/{section}/{formular}/generare-contract-instalare', 'generateContractInstalare')->name('generate.contract.instalare');
-            Route::get('formular/{section}/{formular}/generare-act-aditional-contract-instalare', 'generateActAditionalContractInstalare')
-                ->name('generate.act.aditional.contract.instalare');
+            Route::get('formular/{section}/{formular}/generare-act-aditional-contract-instalare', 'generateActAditionalContractInstalare')->name('generate.act.aditional.contract.instalare');
+
             Route::get('formular/{section}/{formular}/generare-act-aditional-upgrade', 'generateActAditionalUpgrade')->name('generate.act.aditional.upgrade');
             Route::get('formular/{section}/{formular}/generare-anexa-factura', 'generateAnexaFactura')->name('generate.anexa.factura');
             // Route::get('formular/{section}/{formular}/generare-pv-receptie', 'generatePvReceptie')->name('generate.pv.receptie');
@@ -264,6 +264,7 @@ Route::middleware(['ci_auth'])->group(function() {
             Route::get('formular/{section}/{formular}/mail-data-estimata-montaj', 'sendMailDataEstimataMontaj')->name('mail.data.estimata.montaj');
             Route::get('formular/{section}/{formular}/mail-contract-instalare', 'sendMailContractInstalare')->name('mail.contract.instalare');
 
+            Route::get('formular/{section}/{formular}/generare-qr-factura', 'generateQrCode')->name('generate.qr.factura');
 
             // Route::get('formular/{section}/export-afm-table', 'exportAfmTable')->name('export.afm.table');
             // Route::post('formular/{section}/export-afm-table', 'exportAfmTable')
