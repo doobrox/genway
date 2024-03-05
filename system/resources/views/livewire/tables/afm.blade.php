@@ -203,20 +203,51 @@
                                     data-update-route="{{ route('ofertare.afm.update.column', [$section, $item->id, $coloana->nume]) }}"
                                 @endif
                                 >
-                                @switch($coloana->afisare)
-                                    @case(1)
-                                        <x-dynamic-component :component="'ofertare.columns.view.'.$coloana->nume"
-                                            :item="$item"
-                                            :column="$coloana"
-                                        />
-                                        @break
-                                    @default
-                                        <x-dynamic-component :component="'ofertare.fields.view.'.$types[$coloana->tip]"
-                                            :item="$item"
-                                            :column="$coloana"
-                                        />
-                                        @break
-                                @endswitch
+
+                                @if($coloana->nume === 'test_de_test_test')
+
+                                    <a href="#" data-toggle="modal" data-target="#downloads-modal-{{ $item->id }}" class="btn btn-sm blue-sharp" title="Download Modal">
+                                        Open Modal
+                                    </a>
+
+                                    <div class="modal fade" id="downloads-modal-{{ $item->id }}" tabindex="-1" role="dialog" aria-labelledby="downloads-title" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                    <h4 class="modal-title" id="explicatii-title">Titlu</h4>
+                                                </div>
+                                                <div class="alert alert-danger hidden text-center" id='error' role="alert"></div>
+                                                <div class="modal-body">
+                                                    <span class="downloads-modal-row-id">{{ $item->id }}</span>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Inchide') }}</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{--<button wire:click="openModalForDownload('{{ $item->id }}')" class="btn btn-primary">Livewire</button>--}}
+
+                                @else
+
+                                    @switch($coloana->afisare)
+                                        @case(1)
+                                            <x-dynamic-component :component="'ofertare.columns.view.'.$coloana->nume"
+                                                :item="$item"
+                                                :column="$coloana"
+                                            />
+                                            @break
+                                        @default
+                                            <x-dynamic-component :component="'ofertare.fields.view.'.$types[$coloana->tip]"
+                                                :item="$item"
+                                                :column="$coloana"
+                                            />
+                                            @break
+                                    @endswitch
+
+                                @endif
                             </td>
                         @endforeach
                         <td class="options">
