@@ -1,5 +1,5 @@
 <div class="relative" wire:ignore.self>
-    <x-ofertare.table-loader wire:loading.flex 
+    <x-ofertare.table-loader wire:loading.flex
         wire:target="conditions, current_columns, all_columns_checked, gotoPage, nextPage, previousPage, changeSablon, orderBy, exportTabelSiConditii, exportNecesarEchipa" />
     @if(session()->has('status'))
         <div class="alert alert-success" role="alert">{{ session('status') }}</div>
@@ -234,7 +234,7 @@
                                                                 formData{{ $item->id }}.append('file', fileInput{{ $item->id }});
 
                                                                 $.ajax({
-                                                                    url: '{{ route('generate.qr.factura', ['formular' => $item->id, 'section'=>$section]) }}',
+                                                                    url: 'blabl/asd/asd/{{$item->id}}',
                                                                     method: 'POST',
                                                                     // For Livewire (if not working, comment this line temporarily)
                                                                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
