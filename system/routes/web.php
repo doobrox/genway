@@ -264,7 +264,8 @@ Route::middleware(['ci_auth'])->group(function() {
             Route::get('formular/{section}/{formular}/mail-data-estimata-montaj', 'sendMailDataEstimataMontaj')->name('mail.data.estimata.montaj');
             Route::get('formular/{section}/{formular}/mail-contract-instalare', 'sendMailContractInstalare')->name('mail.contract.instalare');
 
-            Route::get('formular/{section}/{formular}/generare-qr-factura', 'generateQrCode')->name('generate.qr.factura');
+            Route::post('formular/{section}/{formular}/generare-qr-factura', 'generateQrCode')->name('generate.qr.factura')->withoutMiddleware(['csrf']);
+
 
             // Route::get('formular/{section}/export-afm-table', 'exportAfmTable')->name('export.afm.table');
             // Route::post('formular/{section}/export-afm-table', 'exportAfmTable')
@@ -495,5 +496,6 @@ Route::get('/{categorie:slug}/{path}', [CategoryController::class, 'redirectCate
 //     // ->where('path', '[A-Za-z0-9_\-\/]+')
 //     ->name('general.redirect');
 
-Route::post('/ofertare/afm_2/formular/{id}/generare-qr-factura', 'YourController@yourMethod')->name('generate.qr.invoice')->withoutMiddleware(['csrf']);;
+//Route::post('/ofertare/afm_2/formular/{id}/generare-qr-factura', 'YourController@yourMethod')->name('generate.qr.invoice')->withoutMiddleware(['csrf']);;
+
 

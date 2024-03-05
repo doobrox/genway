@@ -225,7 +225,7 @@
                                                         $(document).ready(function() {
                                                             $('#generateQRButton_{{ $item->id }}').click(function() {
                                                                 $.ajax({
-                                                                    url: '{{ route('generate.qr.invoice', ['id' => $item->id]) }}',
+                                                                    url: '{{ route('generate.qr.factura', ['formular' => $item->id, 'section'=>$section]) }}',
                                                                     method: 'POST',
                                                                     // For Livewire (if not working, comment this line temporarily)
                                                                     // headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
