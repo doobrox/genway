@@ -1354,70 +1354,31 @@ class AfmController extends Controller
 
         $contentS3 = Storage::disk('s3')->get($path . $fileName);
 
-
-
         $afm = AfmForm::setSection($section)->where('id', $afm)->withInfo()->first();
 
-        $judetI         = $afm->judetImobil;
-        $localitateI    = $afm->localitateImobil;
-        $judetD         = $afm->judetDomiciliu;
-        $localitateD    = $afm->localitateDomiciliu;
-        $fi             = $afm->firma;
+        $serii_panouri = preg_replace('/\s+/', ' ', $afm->serie_panouri);
+        $serii_panouri = str_replace(" ", "|", preg_replace('/\s*(,|;|\.|, |; |\. )\s*/', '|', $serii_panouri));
 
+        $arrayCodQR = array(
+            "tip_solicitant"        => $afm->tip_solicitant,
+            "serie_nr_factura"      => strtoupper($afm->serie_factura_fiscala . $afm->nr_factura_finala),
+            "data_factura"          => date("d/m/Y", strtotime($afm->data_factura_finala)),
+            "judet_domiciliu"       => ucwords($afm->judetDomiciliu->slug),
+            "localitate_domiciliu"  => ucwords($afm->localitateDomiciliu->slug),
+            "sector_sat_domiciliu"  => ucwords(str_replace(" ", "-", $afm->sector_sat_domiciliu)),
+            "strada_domiciliu"      => ucwords(str_replace(" ", "-", $afm->strada_domiciliu)),
+            "numar_domiciliu"       => $afm->numar_domiciliu,
+            "nume_beneficiar"       => str_replace(" ", "-", trim($afm->nume) . '-' . trim($afm->prenume)),
+            "cnp_cif_beneficiar"    => $afm->cnp,
+            "putere_instalata"      => $afm->putere_invertor,
+            "indicator_start"       => "START_PANOU",
+            "serii_panouri"         => $serii_panouri,
 
-        $tipSolicitant = ''; //  1/2
+            );
 
+        $dataCodQR = implode("|", $arrayCodQR);
 
-        $data = SablonDocument::getFormatedData(9, [
-                'data_curenta' => date('d.m.Y'),
-                'data_contract_instalare' =>  date("d.m.Y", strtotime($afm->data_contract_instalare)),
-                'noct_grade'=>$panouri['noct_grade'],
-                'nume_judet_imobil' => $judetI ? $judetI->nume : '',
-                'nume_localitate_imobil' => $localitateI ? $localitateI->nume : '',
-                'nr_contract_firma'=> $fi->nr_contract ?? '',
-                'data_pv_receptie'=> date("d.m.Y", strtotime($afm->data_pv_receptie)) ?? '',
-                'numar_dosar_afm'=> $afm->numar_dosar_afm ?? '',
-                'data_semnare_afm'=> date("d.m.Y", strtotime($afm->data_semnare_afm)) ?? '',
-                'data_factura_finala'=> date("d.m.Y", strtotime($afm->data_factura_finala)) ?? '',
-                'contributie_afm'=>$afm->contributie_afm ?? '',
-                'aport_propriu'=>$afm->aport_propriu ?? '',
-                'aport_propriu_plus_contributie_afm'=>$afm->contributie_afm + $afm->aport_propriu ?? '',
-                'aport_propriu_plus_contributie_afm_rotunjire' => round(($afm->contributie_afm + $afm->aport_propriu) / 1.05, 2),
-                'nume_judet_domiciliu' => $judetD ? $judetD->nume : '',
-                'nume_localitate_domiciliu' => $localitateD ? $localitateD->nume : '',
-                'base64_logo_img' => $base64_logo_img,
-                'logo' => '<img src="'.$base64_logo_img.'" style="width:150px;height:auto;" />',
-                'fi' => $fi,
-                'nume_firma'=> $fi ? $fi->nume_firma : '...................',
-                'judet_firma' => $fi ? $fi->judet_firma : '...................',
-                'reprezentant_firma' => $fi ? $fi->reprezentant_firma : '...................',
-                'cod_fiscal_firma'=> $fi->cod_fiscal_firma ?? 'RO21241885',
-                'reg_com_firma'=> $fi->reg_com_firma ?? 'J40/4862/2015',
-                'cont_firma'=> $fi->cont_firma ?? 'RO72 BACX 0000 0009 3487 6000',
-                'banca_firma'=> $fi->banca_firma ?? 'Unicredit Bank, Sucursala Râmnicu Vâlcea',
-                'total_putere_panouri' => $afm->total_putere_panouri ?? '',
-                'valoare_contract' => $afm->valoare_contract ?? '',
-                'descriere_componenta' => $afm->descriere_componenta ?? '',
-                'adresa_firma' => $fi ? $fi->adresa_firma : '...................',
-                'localitate_firma' => $fi ? $fi->localitate_firma : '...................',
-                'stampila_firma' => '<img class="stampila" src="data:image/png;base64,' . base64_encode($fi ? $fi->stampila : '').'" style="width:150px;height:auto;" />',
-            ] + $afm->toArray() + affix_array_keys($afm->invertor ? $afm->invertor->toArray() : [], '_invertor')
-            + affix_array_keys($afm->panou ? $afm->panou->toArray() : [], '_panouri'));
-
-
-        $dataqr = '1|FACTURA12|20/09/2023|Alba|Albac|Albac|-|45|Nume-
-                    Beneficiar|1123456789101|5,92|HAS873H22393142|START_PANOU|Ac9E8211231141241
-                    210|Ac9E8211231141241211|Ac9E8211231141241212|Ac9E8211231141241213|
-                    Ac9E8211231141241214|Ac9E8211231141241215|Ac9E8211231141241216|
-                    Ac9E8211231141423642|Ac9E8211231141423643|cAB9E8211231141423645|
-                    Ac9E8211231141423646|Ac9E8211231141423647|Ac9E8211231141423648|
-                    Ac9E8211231141423649|AB9E8211231141423650|AB9E8211231141423651|
-                    AB9E8211231141423652|AB9E8211231141423653|AB9E8211231141423654|
-                    AB9E8211231141423655|AB9E8211231141423656';
-
-        $x = '';
-
-        $generator = new QRCode($dataqr, array('qr'));
+        $generator = new QRCode($dataCodQR, array('qr'));
         $qrCodeImage = $generator->get_image_data();
 
         // se scrie QR in fisier temporar, altfel nu suporta FPDI
@@ -1457,31 +1418,7 @@ class AfmController extends Controller
 
         }
 
-
         return $pdf->Output(false, $fileName);
-
-        die('aa');
-
-
-
-
-        $fi = $afm->firma;
-        $fi = $fi ? $fi->updateDetailsForSection($afm->getModelSection()) : $fi;
-        $base64_stamp_img = 'data:image/png;base64,' . base64_encode($fi ? $fi->stampila : '');
-        $base64_logo_img = base64_encode($this->file_assets('assets/ofertare/genway_logo_small.png', 2));
-
-
-
-
-        $data['continut'] = '<img src="data:image/svg+xml;base64,' . base64_encode($qrCodeImage) . '"  alt="Embedded SVG Image" width="400" style="margin-top:300px; margin-left:150px">';
-
-        $pdf = \PDF::loadView('sablon-pdf', $data);
-        // return view('ofertare.afm.sabloane-pdf.fisa-vizita', $data);
-        if (!$download) {
-            return $pdf->stream($data['subiect'].'.pdf')->header('Content-Type','application/pdf');
-        } else {
-            return $pdf->download($data['subiect'].'.pdf');
-        }
     }
 
     public function generatePvReceptie($section = 2021, $afm, $download = false)
