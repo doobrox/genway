@@ -220,19 +220,30 @@
                                                 <div class="alert alert-danger hidden text-center" id='error' role="alert"></div>
                                                 <div class="modal-body">
                                                     <span class="downloads-modal-row-id">{{ $item->id }}</span>
+                                                    <br>
+                                                    <br>
+                                                    <input type="file" id="fileInput{{ $item->id }}" name="fileInput{{ $item->id }}">
+                                                    <br>
+                                                    <br>
                                                     <button id="generateQRButton_{{ $item->id }}">Generate QR Code</button>
                                                     <script>
                                                         $(document).ready(function() {
-                                                            $('#generateQRButton_{{ $item->id }}').click(function() {
+                                                            $('#generateQRButton{{ $item->id }}').click(function() {
+                                                                var fileInput{{ $item->id }} = $('#fileInput{{ $item->id }}')[0].files[0];
+                                                                var formData{{ $item->id }} = new FormData();
+                                                                formData{{ $item->id }}.append('file', fileInput{{ $item->id }});
+
                                                                 $.ajax({
                                                                     url: '{{ route('generate.qr.factura', ['formular' => $item->id, 'section'=>$section]) }}',
                                                                     method: 'POST',
                                                                     // For Livewire (if not working, comment this line temporarily)
-                                                                    // headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                                                                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                                                                     dataType: 'json',
+                                                                    processData: false,
+                                                                    contentType: false,
+                                                                    data: formData{{ $item->id }},
                                                                     success: function(data){
                                                                         console.log(data);
-                                                                        alert('2222');
                                                                     },
                                                                     error: function(xhr, status, error) {
                                                                         console.error(xhr.responseText);
