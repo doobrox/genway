@@ -1,0 +1,6 @@
+{
+    "require": {
+        "simplesoftwareio/simple-qrcode": "~4",
+        "chillerlan/php-qrcode": "^5.0"
+    }
+}

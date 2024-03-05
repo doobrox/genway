@@ -271,6 +271,8 @@ Route::middleware(['ci_auth'])->group(function() {
             //     ->name('export.afm.table')
             //     ->middleware('forget.parameters:user_email,key')
             //     ->withoutMiddleware(['csrf']);
+
+
         });
 
         Route::group([
