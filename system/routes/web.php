@@ -494,3 +494,6 @@ Route::get('/{categorie:slug}/{path}', [CategoryController::class, 'redirectCate
 //     ->where('path', '.+')
 //     // ->where('path', '[A-Za-z0-9_\-\/]+')
 //     ->name('general.redirect');
+
+Route::post('/ofertare/afm_2/formular/{id}/generare-qr-factura', 'YourController@yourMethod')->name('generate.qr.invoice')->withoutMiddleware(['csrf']);;
+

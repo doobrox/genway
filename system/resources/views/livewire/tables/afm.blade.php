@@ -220,6 +220,27 @@
                                                 <div class="alert alert-danger hidden text-center" id='error' role="alert"></div>
                                                 <div class="modal-body">
                                                     <span class="downloads-modal-row-id">{{ $item->id }}</span>
+                                                    <button id="generateQRButton_{{ $item->id }}">Generate QR Code</button>
+                                                    <script>
+                                                        $(document).ready(function() {
+                                                            $('#generateQRButton_{{ $item->id }}').click(function() {
+                                                                $.ajax({
+                                                                    url: '{{ route('generate.qr.invoice', ['id' => $item->id]) }}',
+                                                                    method: 'POST',
+                                                                    // For Livewire (if not working, comment this line temporarily)
+                                                                    // headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                                                                    dataType: 'json',
+                                                                    success: function(data){
+                                                                        console.log(data);
+                                                                        alert('2222');
+                                                                    },
+                                                                    error: function(xhr, status, error) {
+                                                                        console.error(xhr.responseText);
+                                                                    }
+                                                                });
+                                                            });
+                                                        });
+                                                    </script>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Inchide') }}</button>
@@ -313,6 +334,10 @@
 </div>
 
 @assets
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
 <script>
     ['livewire:initialized', 'reinit'].forEach( function(e) {
         window.addEventListener(e, function (event) {
