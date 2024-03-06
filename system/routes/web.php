@@ -264,7 +264,8 @@ Route::middleware(['ci_auth'])->group(function() {
             Route::get('formular/{section}/{formular}/mail-data-estimata-montaj', 'sendMailDataEstimataMontaj')->name('mail.data.estimata.montaj');
             Route::get('formular/{section}/{formular}/mail-contract-instalare', 'sendMailContractInstalare')->name('mail.contract.instalare');
 
-            Route::post('formular/{section}/{formular}/generare-qr-factura', 'generateQrCode')->name('generate.qr.factura')->withoutMiddleware(['csrf']);
+            Route::get('formular/{section}/{formular}/{view}-qr-factura/', 'generateQrCode')->name('viewqrfactura');
+            Route::post('formular/{section}/{formular}/generare-qr-factura', 'generateQrCode')->name('generateqrfactura')->withoutMiddleware(['csrf']);
 
 
             // Route::get('formular/{section}/export-afm-table', 'exportAfmTable')->name('export.afm.table');

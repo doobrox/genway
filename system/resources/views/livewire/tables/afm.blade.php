@@ -204,46 +204,57 @@
                                 @endif
                                 >
 
-                                @if($coloana->nume === 'test_de_test_test')
+                                @if($coloana->nume === 'factura_salvata_s3')
 
-                                    <a href="#" data-toggle="modal" data-target="#downloads-modal-{{ $item->id }}" class="btn btn-sm blue-sharp" title="Download Modal">
-                                        Open Modal
-                                    </a>
+                                    @if($item->factura_salvata_s3 != '')
+                                        <a href="{{ route('ofertare.afm.viewqrfactura', ['formular' => $item->id, 'section'=>$section, 'view'=>'view']) }}" target="_blank" class="btn green-jungle"><i class="fa fa-file-pdf-o"></i></a>
+                                    @else
+                                        <a href="#" data-toggle="modal" data-target="#downloads-modal-{{ $item->id }}" class="btn btn-sm blue-sharp" title="Download Modal">
+                                            <i class="fa fa-file-pdf-o"></i>
+                                        </a>
+                                    @endif
+
 
                                     <div class="modal fade" id="downloads-modal-{{ $item->id }}" tabindex="-1" role="dialog" aria-labelledby="downloads-title" aria-hidden="true">
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                                    <h4 class="modal-title" id="explicatii-title">Titlu</h4>
+                                                    <h4 class="modal-title" id="explicatii-title">Incarca Factura fara QR</h4>
                                                 </div>
                                                 <div class="alert alert-danger hidden text-center" id='error' role="alert"></div>
                                                 <div class="modal-body">
-                                                    <span class="downloads-modal-row-id">{{ $item->id }}</span>
-                                                    <br>
-                                                    <br>
+
                                                     <input type="file" id="fileInput{{ $item->id }}" name="fileInput{{ $item->id }}">
                                                     <br>
                                                     <br>
-                                                    <button id="generateQRButton_{{ $item->id }}">Generate QR Code</button>
+
                                                     <script>
                                                         $(document).ready(function() {
-                                                            $('#generateQRButton{{ $item->id }}').click(function() {
+                                                            $('#generateQRButton_{{ $item->id }}').click(function() {
                                                                 var fileInput{{ $item->id }} = $('#fileInput{{ $item->id }}')[0].files[0];
                                                                 var formData{{ $item->id }} = new FormData();
                                                                 formData{{ $item->id }}.append('file', fileInput{{ $item->id }});
 
                                                                 $.ajax({
-                                                                    url: 'blabl/asd/asd/{{$item->id}}',
+
+                                                                    url: '{{ route('ofertare.afm.generateqrfactura', ['formular' => $item->id, 'section'=>$section]) }}',
                                                                     method: 'POST',
                                                                     // For Livewire (if not working, comment this line temporarily)
                                                                     headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                                                                    dataType: 'json',
+
                                                                     processData: false,
                                                                     contentType: false,
                                                                     data: formData{{ $item->id }},
                                                                     success: function(data){
-                                                                        console.log(data);
+                                                                        var resp = JSON.parse(data);
+
+                                                                        console.log(resp);
+                                                                        if(resp.success == 'success') {
+                                                                            $("#fileInput{{ $item->id }}").val(null);
+                                                                            $("#view_link_factura_{{ $item->id }}").show();
+
+                                                                        }
                                                                     },
                                                                     error: function(xhr, status, error) {
                                                                         console.error(xhr.responseText);
@@ -252,9 +263,13 @@
                                                             });
                                                         });
                                                     </script>
+
+                                                    <a href="{{ route('ofertare.afm.viewqrfactura', ['formular' => $item->id, 'section'=>$section, 'view'=>'view']) }}" target="_blank" id="view_link_factura_{{ $item->id }}" class="btn blue-sharp" style="display: none;">Vezi Factura cu QR</a>
+
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Inchide') }}</button>
+                                                    <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">{{ __('Inchide') }}</button>
+                                                    <button id="generateQRButton_{{ $item->id }}" class="btn green-jungle pull-right">Adauga Factura</button>
                                                 </div>
                                             </div>
                                         </div>

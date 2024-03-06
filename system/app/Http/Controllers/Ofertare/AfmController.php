@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
-
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -1339,86 +1339,113 @@ class AfmController extends Controller
         }
     }
 
-    public function generateQrCode($section = 2021, $afm, $download = false)
+    public function generateQrCode(Request $request, $section = 2021, $afm, $download = false)
     {
+        $idRow = $afm;
+        $afm = AfmForm::setSection($section)->where('id', $idRow)->withInfo()->first();
+        $path = "factura4qr/$section/$idRow/";
 
-        $path = "factura4qr/$section/$afm/";
-        $fileName = "factura.pdf";
+        if($download == 'view'){
+            // vrem sa vedem fisierul
+            $originalName = $afm->factura_salvata_s3;
 
-        $content = file_get_contents( public_path($fileName) );
+        }else{
 
-        $fileExists = Storage::disk('s3')->exists($path . $fileName);
-        if(!$fileExists){
-            Storage::disk('s3')->put($path . $fileName, $content);
+            // se face upload de fisier
+            if ($request->hasFile('file')) {
+                // Retrieve the file from the request
+                $file = $request->file('file');
+                $originalName = $file->getClientOriginalName();
+                $tempFileName = $file->path();
+            }else{
+                exit;
+            }
+
+            $content = file_get_contents( $tempFileName );
+
+            $fileExists = Storage::disk('s3')->exists($path . $originalName);
+            if(!$fileExists){
+                Storage::disk('s3')->put($path . $originalName, $content);
+
+                DB::table("fotovoltaice" .$section . "_info")
+                    ->where('id_formular', $idRow)
+                    ->update(['factura_salvata_s3' => $originalName]);
+            }
+
+            return json_encode(array('success' => 'success'));
+            exit;
         }
 
-        $contentS3 = Storage::disk('s3')->get($path . $fileName);
 
-        $afm = AfmForm::setSection($section)->where('id', $afm)->withInfo()->first();
+        $contentS3 = Storage::disk('s3')->get($path . $originalName);
 
-        $serii_panouri = preg_replace('/\s+/', ' ', $afm->serie_panouri);
-        $serii_panouri = str_replace(" ", "|", preg_replace('/\s*(,|;|\.|, |; |\. )\s*/', '|', $serii_panouri));
+        if( !is_null($contentS3) ) {
 
-        $arrayCodQR = array(
-            "tip_solicitant"        => $afm->tip_solicitant,
-            "serie_nr_factura"      => strtoupper($afm->serie_factura_fiscala . $afm->nr_factura_finala),
-            "data_factura"          => date("d/m/Y", strtotime($afm->data_factura_finala)),
-            "judet_domiciliu"       => ucwords($afm->judetDomiciliu->slug),
-            "localitate_domiciliu"  => ucwords($afm->localitateDomiciliu->slug),
-            "sector_sat_domiciliu"  => ucwords(str_replace(" ", "-", $afm->sector_sat_domiciliu)),
-            "strada_domiciliu"      => ucwords(str_replace(" ", "-", $afm->strada_domiciliu)),
-            "numar_domiciliu"       => $afm->numar_domiciliu,
-            "nume_beneficiar"       => str_replace(" ", "-", trim($afm->nume) . '-' . trim($afm->prenume)),
-            "cnp_cif_beneficiar"    => $afm->cnp,
-            "putere_instalata"      => $afm->putere_invertor,
-            "indicator_start"       => "START_PANOU",
-            "serii_panouri"         => $serii_panouri,
+            $serii_panouri = preg_replace('/\s+/', ' ', $afm->serie_panouri);
+            $serii_panouri = str_replace(" ", "|", preg_replace('/\s*(,|;|\.|, |; |\. )\s*/', '|', $serii_panouri));
+
+            $arrayCodQR = array(
+                "tip_solicitant" => $afm->tip_solicitant,
+                "serie_nr_factura" => strtoupper($afm->serie_factura_fiscala . $afm->nr_factura_finala),
+                "data_factura" => date("d/m/Y", strtotime($afm->data_factura_finala)),
+                "judet_domiciliu" => ucwords($afm->judetDomiciliu->slug),
+                "localitate_domiciliu" => ucwords($afm->localitateDomiciliu->slug),
+                "sector_sat_domiciliu" => ucwords(str_replace(" ", "-", $afm->sector_sat_domiciliu)),
+                "strada_domiciliu" => ucwords(str_replace(" ", "-", $afm->strada_domiciliu)),
+                "numar_domiciliu" => $afm->numar_domiciliu,
+                "nume_beneficiar" => str_replace(" ", "-", trim($afm->nume) . '-' . trim($afm->prenume)),
+                "cnp_cif_beneficiar" => $afm->cnp,
+                "putere_instalata" => $afm->putere_invertor,
+                "indicator_start" => "START_PANOU",
+                "serii_panouri" => $serii_panouri,
 
             );
 
-        $dataCodQR = implode("|", $arrayCodQR);
+            $dataCodQR = implode("|", $arrayCodQR);
 
-        $generator = new QRCode($dataCodQR, array('qr'));
-        $qrCodeImage = $generator->get_image_data();
+            $generator = new QRCode($dataCodQR, array('qr'));
+            $qrCodeImage = $generator->get_image_data();
 
-        // se scrie QR in fisier temporar, altfel nu suporta FPDI
-        $tempImagePath = tempnam(sys_get_temp_dir(), 'image_');
-        file_put_contents($tempImagePath, $qrCodeImage);
+            // se scrie QR in fisier temporar, altfel nu suporta FPDI
+            $tempImagePath = tempnam(sys_get_temp_dir(), 'image_');
+            file_put_contents($tempImagePath, $qrCodeImage);
 
-        // se scrie QR in fisier temporar, altfel nu suporta FPDI
-        $tempFactPath = tempnam(sys_get_temp_dir(), 'factura_pdf_');
-        file_put_contents($tempFactPath, $contentS3);
-
-
-        // initiate FPDI
-        $pdf = new Fpdi();
-        $pageCount = $pdf->setSourceFile( $tempFactPath );
+            // se scrie QR in fisier temporar, altfel nu suporta FPDI
+            $tempFactPath = tempnam(sys_get_temp_dir(), 'factura_pdf_');
+            file_put_contents($tempFactPath, $contentS3);
 
 
-        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+            // initiate FPDI
+            $pdf = new Fpdi();
+            $pageCount = $pdf->setSourceFile($tempFactPath);
 
-            $tplIdx = $pdf->importPage($pageNo);
 
-            if($pageNo == 1){
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 
-                $pdf->AddPage();
-                $pdf->useTemplate($tplIdx);
+                $tplIdx = $pdf->importPage($pageNo);
 
-                $imageX = 150; // X coordinate
-                $imageY = 60; // Y coordinate
-                $imageWidth = 30; // Image width
-                $imageHeight = 0;
-                $pdf->Image($tempImagePath, $imageX, $imageY, $imageWidth, $imageHeight, 'png');
+                if ($pageNo == 1) {
 
-            }else{
+                    $pdf->AddPage();
+                    $pdf->useTemplate($tplIdx);
 
-                $pdf->AddPage();
-                $pdf->useTemplate($tplIdx);
+                    $imageX = 150; // X coordinate
+                    $imageY = 60; // Y coordinate
+                    $imageWidth = 30; // Image width
+                    $imageHeight = 0;
+                    $pdf->Image($tempImagePath, $imageX, $imageY, $imageWidth, $imageHeight, 'png');
+
+                } else {
+
+                    $pdf->AddPage();
+                    $pdf->useTemplate($tplIdx);
+                }
+
             }
-
+            $pdf->Output(false, $originalName);
+        }else{
+            echo 'A aparut o eroare. Factura originala nu este pe server';
         }
-
-        return $pdf->Output(false, $fileName);
     }
 
     public function generatePvReceptie($section = 2021, $afm, $download = false)
